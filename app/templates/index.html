@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h1 class="mb-4">Adicionar Herói</h1>
+        <form action="/add_hero" method="post" class="border p-4 rounded shadow">
+            <div class="mb-3">
+                <label for="name" class="form-label">Nome</label>
+                <input type="text" name="name" id="name" class="form-control" placeholder="Nome do Herói" required>
+            </div>
+            <div class="mb-3">
+                <label for="age" class="form-label">Idade</label>
+                <input type="number" name="age" id="age" class="form-control" placeholder="Idade" required>
+            </div>
+            <div class="mb-3">
+                <label for="gender" class="form-label">Gênero</label>
+                <input type="text" name="gender" id="gender" class="form-control" placeholder="Gênero" required>
+            </div>
+            <div class="mb-3">
+                <label for="powers" class="form-label">Poderes</label>
+                <textarea name="powers" id="powers" class="form-control" placeholder="Descreva os poderes do herói" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Adicionar Herói</button>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <h1 class="mb-4">Lista de Heróis</h1>
+        <ul class="list-group">
+            {% for hero in heroes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ hero.name }}
+                <span class="badge bg-primary">{{ hero.status }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

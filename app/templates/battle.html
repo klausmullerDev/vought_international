@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Simulador de Batalhas</h1>
+
+<form method="POST" action="/battle">
+    <div class="mb-3">
+        <label for="hero_id" class="form-label">Escolha o Herói</label>
+        <select class="form-select" id="hero_id" name="hero_id" required>
+            {% for hero in heroes %}
+            <option value="{{ hero.id }}">{{ hero.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Escolha o Tipo de Oponente</label><br>
+        <input type="radio" id="opponent_hero" name="opponent_type" value="hero" required>
+        <label for="opponent_hero">Herói</label><br>
+        <input type="radio" id="opponent_villain" name="opponent_type" value="villain" required>
+        <label for="opponent_villain">Vilão</label>
+    </div>
+
+    <div class="mb-3">
+        <label for="opponent_id" class="form-label">Escolha o Oponente</label>
+        <select class="form-select" id="opponent_id" name="opponent_id" required>
+            <optgroup label="Heróis">
+                {% for hero in heroes %}
+                <option value="{{ hero.id }}">{{ hero.name }}</option>
+                {% endfor %}
+            </optgroup>
+            <optgroup label="Vilões">
+                {% for villain in villains %}
+                <option value="{{ villain.id }}">{{ villain.name }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lutar!</button>
+</form>
+{% endblock %}

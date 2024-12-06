@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Missões</h1>
+<table class="table table-bordered table-striped mt-4">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Dificuldade</th>
+            <th>Heróis Designados</th>
+            <th>Resultado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for mission in missions %}
+        <tr>
+            <td>{{ mission.name }}</td>
+            <td>{{ mission.description }}</td>
+            <td>{{ mission.difficulty }}</td>
+            <td>{{ mission.assigned_heroes }}</td>
+            <td>{{ mission.result or 'Em andamento' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

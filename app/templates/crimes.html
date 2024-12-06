@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Crimes do Herói</h1>
+<table class="table table-bordered table-striped mt-4">
+    <thead>
+        <tr>
+            <th>Nome do Crime</th>
+            <th>Descrição</th>
+            <th>Severidade</th>
+            <th>Data</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for crime in crimes %}
+        <tr>
+            <td>{{ crime.name }}</td>
+            <td>{{ crime.description }}</td>
+            <td>{{ crime.severity }}</td>
+            <td>{{ crime.date.strftime('%Y-%m-%d') }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
