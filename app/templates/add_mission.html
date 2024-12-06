@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Adicionar Missão</h1>
+<form method="POST" action="/add_mission">
+    <div class="mb-3">
+        <label for="name" class="form-label">Nome</label>
+        <input type="text" name="name" id="name" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Descrição</label>
+        <textarea name="description" id="description" class="form-control" required></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="difficulty" class="form-label">Dificuldade</label>
+        <input type="number" name="difficulty" id="difficulty" class="form-control" min="1" max="100" required>
+    </div>
+    <div class="mb-3">
+        <label for="reward_strength" class="form-label">Recompensa de Força</label>
+        <input type="number" name="reward_strength" id="reward_strength" class="form-control" min="1" max="20" required>
+    </div>
+    <div class="mb-3">
+        <label for="reward_popularity" class="form-label">Recompensa de Popularidade</label>
+        <input type="number" name="reward_popularity" id="reward_popularity" class="form-control" min="1" max="20" required>
+    </div>
+    <div class="mb-3">
+        <label for="hero_ids" class="form-label">Heróis Participantes</label>
+        <select name="hero_ids" id="hero_ids" class="form-select" multiple required>
+            {% for hero in heroes %}
+            <option value="{{ hero.id }}">{{ hero.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Salvar Missão</button>
+</form>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Editar Missão</h1>
+<form method="POST" action="/edit_mission/{{ mission.id }}">
+    <div class="mb-3">
+        <label for="name" class="form-label">Nome da Missão</label>
+        <input type="text" name="name" id="name" class="form-control" value="{{ mission.name }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Descrição</label>
+        <textarea name="description" id="description" class="form-control" required>{{ mission.description }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="difficulty" class="form-label">Dificuldade</label>
+        <input type="number" name="difficulty" id="difficulty" class="form-control" value="{{ mission.difficulty }}" min="1" max="100" required>
+    </div>
+    <div class="mb-3">
+        <label for="assigned_heroes" class="form-label">Heróis Atribuídos</label>
+        <select multiple class="form-select" id="assigned_heroes" name="hero_ids">
+            {% for hero in heroes %}
+            <option value="{{ hero.id }}" {% if hero.id|string in mission.assigned_heroes.split(',') %}selected{% endif %}>
+                {{ hero.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="/view_missions" class="btn btn-secondary">Cancelar</a>
+</form>
+
+<!-- Botão de Exclusão -->
+<form method="POST" action="/delete_mission/{{ mission.id }}" style="margin-top: 20px;">
+    <button type="submit" class="btn btn-danger">Excluir Missão</button>
+</form>
+{% endblock %}

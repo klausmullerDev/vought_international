@@ -2,14 +2,15 @@
 
 {% block content %}
 <h1>Missões</h1>
-<table class="table table-bordered table-striped mt-4">
+<a href="/add_mission" class="btn btn-success mb-3">Adicionar Nova Missão</a>
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Nome</th>
             <th>Descrição</th>
             <th>Dificuldade</th>
-            <th>Heróis Designados</th>
-            <th>Resultado</th>
+            <th>Status</th>
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
@@ -18,8 +19,15 @@
             <td>{{ mission.name }}</td>
             <td>{{ mission.description }}</td>
             <td>{{ mission.difficulty }}</td>
-            <td>{{ mission.assigned_heroes }}</td>
-            <td>{{ mission.result or 'Em andamento' }}</td>
+            <td>{{ mission.status }}</td>
+            <td>
+                <a href="/edit_mission/{{ mission.id }}" class="btn btn-warning btn-sm">Editar</a>
+                {% if mission.status == "Pendente" %}
+                <form action="/execute_mission/{{ mission.id }}" method="POST" style="display:inline;">
+                    <button class="btn btn-success btn-sm">Executar</button>
+                </form>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>

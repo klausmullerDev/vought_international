@@ -85,24 +85,7 @@ def view_crimes():
     # Renderizar o template com a lista completa de crimes
     return render_template('crimes.html', crimes=crimes)
 
-@bp.route('/add_mission', methods=['POST'])
-def add_mission():
-    data = request.form
-    assigned_heroes = ','.join(data.getlist('hero_ids'))
-    new_mission = Mission(
-        name=data['name'],
-        description=data['description'],
-        difficulty=int(data['difficulty']),
-        assigned_heroes=assigned_heroes
-    )
-    db.session.add(new_mission)
-    db.session.commit()
-    return redirect(url_for('main.index'))
 
-@bp.route('/view_missions')
-def view_missions():
-    missions = Mission.query.all()
-    return render_template('missions.html', missions=missions)
 
 
 @bp.route('/battle', methods=['GET', 'POST'])
@@ -268,28 +251,7 @@ def hidden_crimes():
     crimes = Crime.query.filter_by(hidden=True).all()
     return render_template('hidden_crimes.html', crimes=crimes)
 
-@bp.route('/complete_mission/<int:mission_id>', methods=['POST'])
-def complete_mission(mission_id):
-    mission = Mission.query.get(mission_id)
-    if not mission:
-        return jsonify({"error": "Missão não encontrada"}), 404
 
-    result = request.form['result']
-    mission.result = result
-
-    hero_ids = [int(id) for id in mission.assigned_heroes.split(',')]
-    for hero_id in hero_ids:
-        hero = Hero.query.get(hero_id)
-        if result == 'Sucesso':
-            hero.strength_level += mission.reward_strength
-            hero.popularity += mission.reward_popularity
-        elif result == 'Fracasso':
-            hero.strength_level -= 5
-            hero.popularity -= 10
-        hero.update_status()
-
-    db.session.commit()
-    return redirect(url_for('main.view_missions'))
 
 
 @bp.route('/battle_log')
@@ -298,3 +260,92 @@ def battle_log():
     battles = Battle.query.order_by(Battle.timestamp.desc()).all()
     return render_template('battle_log.html', battles=battles)
 
+@bp.route('/add_mission', methods=['POST', 'GET'])
+def add_mission():
+    """Adiciona ou exibe o formulário para criar uma missão."""
+    if request.method == 'GET':
+        heroes = Hero.query.order_by(Hero.name).all()  # Ordena os heróis por nome
+        return render_template('add_mission.html', heroes=heroes)
+    elif request.method == 'POST':
+        data = request.form
+        assigned_heroes = ','.join(data.getlist('hero_ids'))
+        new_mission = Mission(
+            name=data['name'],
+            description=data['description'],
+            difficulty=int(data['difficulty']),
+            assigned_heroes=assigned_heroes,
+            reward_strength=int(data['reward_strength']),
+            reward_popularity=int(data['reward_popularity']),
+            status="Pendente"
+        )
+        db.session.add(new_mission)
+        db.session.commit()
+        return redirect(url_for('main.view_missions'))
+
+
+@bp.route('/view_missions')
+def view_missions():
+    """Lista todas as missões."""
+    missions = Mission.query.all()
+    return render_template('missions.html', missions=missions)
+
+
+@bp.route('/edit_mission/<int:mission_id>', methods=['GET', 'POST'])
+def edit_mission(mission_id):
+    mission = Mission.query.get(mission_id)
+    if not mission:
+        return jsonify({"error": "Missão não encontrada"}), 404
+
+    if request.method == 'POST':
+        data = request.form
+        mission.name = data['name']
+        mission.description = data['description']
+        mission.difficulty = int(data['difficulty'])
+        mission.assigned_heroes = ','.join(data.getlist('hero_ids'))
+        db.session.commit()
+        return redirect(url_for('main.view_missions'))
+
+    heroes = Hero.query.order_by(Hero.name).all()
+    return render_template('edit_mission.html', mission=mission, heroes=heroes)
+
+
+
+@bp.route('/execute_mission/<int:mission_id>', methods=['POST'])
+def execute_mission(mission_id):
+    """Executa uma missão e calcula o resultado."""
+    mission = Mission.query.get(mission_id)
+    if not mission:
+        return jsonify({"error": "Missão não encontrada"}), 404
+
+    hero_ids = [int(hero_id) for hero_id in mission.assigned_heroes.split(',')]
+    heroes = [Hero.query.get(hero_id) for hero_id in hero_ids]
+
+    # Calcular força total da equipe
+    team_strength = sum(hero.strength_level for hero in heroes)
+    success_threshold = mission.difficulty + random.randint(-10, 10)
+
+    if team_strength >= success_threshold:
+        mission.status = "Concluída"
+        result = "Sucesso"
+        for hero in heroes:
+            hero.strength_level = min(hero.strength_level + mission.reward_strength, 100)
+            hero.popularity = min(hero.popularity + mission.reward_popularity, 100)
+    else:
+        mission.status = "Falhada"
+        result = "Fracasso"
+        for hero in heroes:
+            hero.strength_level = max(hero.strength_level - 5, 0)
+            hero.popularity = max(hero.popularity - 10, 0)
+
+    db.session.commit()
+    return render_template('mission_result.html', mission=mission, result=result, heroes=heroes)
+
+@bp.route('/delete_mission/<int:mission_id>', methods=['POST'])
+def delete_mission(mission_id):
+    mission = Mission.query.get(mission_id)
+    if not mission:
+        return jsonify({"error": "Missão não encontrada"}), 404
+
+    db.session.delete(mission)
+    db.session.commit()
+    return redirect(url_for('main.view_missions'))

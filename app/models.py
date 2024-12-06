@@ -55,6 +55,8 @@ class Mission(db.Model):
     result = db.Column(db.String(20), nullable=True)
     reward_strength = db.Column(db.Integer, default=0)  # Recompensa de força
     reward_popularity = db.Column(db.Integer, default=0)  # Recompensa de popularidade
+    status = db.Column(db.String(20), default="Pendente")  # Novo campo para o status
+
 
 class Villain(db.Model):
     id = db.Column(db.Integer, primary_key=True)

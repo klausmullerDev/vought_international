@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Resultado da Missão</h1>
+<p><strong>Missão:</strong> {{ mission.name }}</p>
+<p><strong>Descrição:</strong> {{ mission.description }}</p>
+<p><strong>Dificuldade:</strong> {{ mission.difficulty }}</p>
+<p><strong>Resultado:</strong> {{ result }}</p>
+<h2>Heróis Participantes</h2>
+<ul>
+    {% for hero in heroes %}
+    <li>{{ hero.name }} - Força: {{ hero.strength_level }}, Popularidade: {{ hero.popularity }}</li>
+    {% endfor %}
+</ul>
+<a href="/view_missions" class="btn btn-secondary">Voltar para Missões</a>
+{% endblock %}
