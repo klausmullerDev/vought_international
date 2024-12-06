@@ -2,6 +2,11 @@
 
 {% block content %}
 <h1>Resultado da Batalha</h1>
-<p><strong>Vencedor:</strong> {{ result }}</p>
+<p><strong>Vencedor:</strong> {{ winner.name }}</p>
+<ul>
+    {% for entry in log %}
+    <li>{{ entry }}</li>
+    {% endfor %}
+</ul>
 <a href="/battle" class="btn btn-secondary">Nova Batalha</a>
 {% endblock %}

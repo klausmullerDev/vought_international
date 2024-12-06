@@ -1,9 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from .models import Hero, Crime, Mission, Villain, Battle
-
 from . import db
 from datetime import datetime
-import random  # Certifique-se de importar random
+import random  
 
 bp = Blueprint('main', __name__)
 
@@ -77,77 +76,30 @@ def add_crime():
         db.session.commit()
     return redirect(url_for('main.index'))
 
-@bp.route('/view_crimes')
-def view_crimes():
-    # Buscar todos os crimes do banco de dados
-    crimes = Crime.query.all()
+@bp.route('/view_crimes/<int:hero_id>')
+def view_crimes(hero_id):
+    # Buscar o herói pelo ID
+    hero = Hero.query.get(hero_id)
+    if not hero:
+        return jsonify({"error": "Herói não encontrado"}), 404
 
-    # Renderizar o template com a lista completa de crimes
-    return render_template('crimes.html', crimes=crimes)
+    # Buscar os crimes associados ao herói
+    crimes = Crime.query.filter_by(hero_id=hero_id).all()
 
+    # Renderizar o template com os crimes do herói
+    return render_template('crimes.html', hero=hero, crimes=crimes) 
 
-
-
-@bp.route('/battle', methods=['GET', 'POST'])
-def battle():
-    if request.method == 'GET':
-        # Obter heróis e vilões para exibição no formulário
-        heroes = Hero.query.all()
-        villains = Villain.query.all()
-        return render_template('battle.html', heroes=heroes, villains=villains)
-    
-    elif request.method == 'POST':
-        # Obter IDs dos combatentes do formulário
-        hero_id = int(request.form['hero_id'])
-        opponent_type = request.form['opponent_type']
-        opponent_id = int(request.form['opponent_id'])
-
-        hero = Hero.query.get(hero_id)
-        opponent = None
-
-        # Identificar oponente
-        if opponent_type == 'hero':
-            opponent = Hero.query.get(opponent_id)
-        elif opponent_type == 'villain':
-            opponent = Villain.query.get(opponent_id)
-        
-        if not hero or not opponent:
-            return jsonify({"error": "Invalid combatants selected"}), 400
-
-        # Calcular força total com elementos aleatórios
-        hero_score = hero.strength_level + hero.popularity + random.randint(-10, 10)
-        opponent_score = opponent.strength_level + opponent.popularity + random.randint(-10, 10)
-
-        # Determinar vencedor e atualizar atributos
-        if hero_score > opponent_score:
-            winner = hero
-            loser = opponent
-            result = f"{hero.name} venceu {opponent.name}!"
-        elif opponent_score > hero_score:
-            winner = opponent
-            loser = hero
-            result = f"{opponent.name} venceu {hero.name}!"
-        else:
-            winner = None
-            result = "A batalha terminou em empate!"
-
-        # Atualizar popularidade
-        if winner:
-            winner.popularity = min(winner.popularity + 5, 100)
-        loser.popularity = max(loser.popularity - 5, 0)
-
-        # Registrar batalha
-        new_battle = Battle(
-            hero1=hero,
-            hero2=opponent,
-            winner=winner,
-            timestamp=datetime.now()
-        )
-        db.session.add(new_battle)
+@bp.route('/unhide_crime/<int:crime_id>', methods=['POST'])
+def unhide_crime(crime_id):
+    # Buscar o crime pelo ID
+    crime = Crime.query.get(crime_id)
+    if crime:
+        # Alterar o status para "não oculto"
+        crime.hidden = False
         db.session.commit()
+        return redirect(url_for('main.view_crimes', hero_id=crime.hero_id))
+    return jsonify({"error": "Crime não encontrado"}), 404
 
-        # Renderizar template com resultado
-        return render_template('battle_result.html', result=result)
 
 def simulate_battle(hero, opponent):
     hero_score = hero.strength_level + hero.popularity + random.randint(-10, 10)
@@ -256,13 +208,13 @@ def hidden_crimes():
 
 @bp.route('/battle_log')
 def battle_log():
-    """Exibe o registro de todas as batalhas realizadas."""
+    
     battles = Battle.query.order_by(Battle.timestamp.desc()).all()
     return render_template('battle_log.html', battles=battles)
 
 @bp.route('/add_mission', methods=['POST', 'GET'])
 def add_mission():
-    """Adiciona ou exibe o formulário para criar uma missão."""
+    
     if request.method == 'GET':
         heroes = Hero.query.order_by(Hero.name).all()  # Ordena os heróis por nome
         return render_template('add_mission.html', heroes=heroes)
@@ -349,3 +301,84 @@ def delete_mission(mission_id):
     db.session.delete(mission)
     db.session.commit()
     return redirect(url_for('main.view_missions'))
+
+@bp.route('/battle', methods=['GET', 'POST'])
+def battle():
+    if request.method == 'GET':
+        heroes = Hero.query.all()
+        villains = Villain.query.all()
+        return render_template('battle.html', heroes=heroes, villains=villains)
+
+    elif request.method == 'POST':
+        hero_id = int(request.form['hero_id'])
+        opponent_type = request.form['opponent_type']
+        opponent_id = int(request.form['opponent_id'])
+
+        hero = Hero.query.get(hero_id)
+        opponent = Hero.query.get(opponent_id) if opponent_type == 'hero' else Villain.query.get(opponent_id)
+
+        winner, log = simulate_battle(hero, opponent)
+
+        # Atualizar popularidade
+        if winner == hero:
+            hero.popularity = min(100, hero.popularity + 5)
+            opponent.popularity = max(0, opponent.popularity - 5)
+        else:
+            opponent.popularity = min(100, opponent.popularity + 5)
+            hero.popularity = max(0, hero.popularity - 5)
+
+        db.session.commit()
+
+        return render_template('battle_result.html', winner=winner, log=log)
+
+def roll_dice(sides=20):
+    """Simula uma rolagem de dado."""
+    return random.randint(1, sides)
+
+def simulate_battle(hero, opponent):
+    """Simula uma batalha entre um herói e um oponente (vilão ou herói)."""
+    log = []
+    hero_hp = 100
+    opponent_hp = 100
+
+    while hero_hp > 0 and opponent_hp > 0:
+        # Turno do herói
+        hero_roll = roll_dice() + (hero.popularity / 10)
+        opponent_roll = roll_dice() + (opponent.popularity / 10)
+        
+        if hero_roll > opponent_roll:
+            damage = roll_dice(sides=10)
+            opponent_hp -= damage
+            log.append(f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} > {opponent_roll:.1f}. Causou {damage} de dano.")
+        else:
+            log.append(f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} <= {opponent_roll:.1f}. Ataque falhou.")
+
+        # Verifica se o oponente ainda está de pé
+        if opponent_hp <= 0:
+            log.append(f"{opponent.name} foi derrotado!")
+            break
+
+        # Turno do oponente
+        opponent_roll = roll_dice() + (opponent.popularity / 10)
+        hero_roll = roll_dice() + (hero.popularity / 10)
+        
+        if opponent_roll > hero_roll:
+            damage = roll_dice(sides=10)
+            hero_hp -= damage
+            log.append(f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} > {hero_roll:.1f}. Causou {damage} de dano.")
+        else:
+            log.append(f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} <= {hero_roll:.1f}. Ataque falhou.")
+
+        # Verifica se o herói ainda está de pé
+        if hero_hp <= 0:
+            log.append(f"{hero.name} foi derrotado!")
+            break
+
+    # Determinar o vencedor
+    if hero_hp > 0:
+        winner = hero
+    else:
+        winner = opponent
+
+    return winner, log
+
