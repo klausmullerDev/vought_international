@@ -136,10 +136,14 @@ def battle():
             return jsonify({"error": "Invalid combatants selected"}), 400
 
         # Calcular resultado
-        result = simulate_battle(hero, opponent)
-        return render_template('battle_result.html', hero=hero, opponent=opponent, result=result)
+        battle_results = simulate_battle(hero, opponent)
+        return render_template(
+            'battle_result.html',
+            hero=hero,
+            opponent=opponent,
+            battle_results=battle_results
+        )
 
-import random
 
 def simulate_battle(hero, opponent):
     # Calcular os atributos de cada combatente
@@ -164,11 +168,18 @@ def simulate_battle(hero, opponent):
             opponent.battle_history = f"{opponent.battle_history}W" if opponent.battle_history else "W"
 
     # Atualizar popularidade dos combatentes
-    winner.popularity += 5
-    loser.popularity -= 5
+    winner.popularity = max(0, min(100, winner.popularity + 5))
+    loser.popularity = max(0, min(100, loser.popularity - 5))
 
     db.session.commit()
-    return result
+
+    return {
+        "winner": winner.name,
+        "loser": loser.name,
+        "winner_popularity": winner.popularity,
+        "loser_popularity": loser.popularity,
+        "result_message": result
+    }
 
 
 # Adicionar Rota para Remover Herói
@@ -194,13 +205,17 @@ def edit_hero(hero_id):
         hero.age = data['age']
         hero.gender = data['gender']
         hero.powers = data['powers']
-        hero.strength_level = int(data['strength_level'])
-        hero.popularity = int(data['popularity'])
+
+        # Validar força e popularidade
+        hero.strength_level = max(0, min(100, int(data['strength_level'])))
+        hero.popularity = max(0, min(100, int(data['popularity'])))
+        
         hero.update_status()
         db.session.commit()
         return redirect(url_for('main.index'))
 
     return render_template('edit_hero.html', hero=hero)
+
 
 # Consultar Heróis por Nome, Status ou Popularidade
 @bp.route('/search_heroes', methods=['GET'])

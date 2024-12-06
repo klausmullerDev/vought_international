@@ -19,13 +19,31 @@
         <label for="powers" class="form-label">Poderes</label>
         <textarea name="powers" id="powers" class="form-control" required>{{ hero.powers }}</textarea>
     </div>
-    <div class="mb-3">
+    <div class="form-group">
         <label for="strength_level" class="form-label">Nível de Força</label>
-        <input type="number" name="strength_level" id="strength_level" class="form-control" value="{{ hero.strength_level }}" required>
+        <input
+            type="number"
+            id="strength_level"
+            name="strength_level"
+            value="{{ hero.strength_level }}"
+            min="0"
+            max="100"
+            class="form-control"
+            required
+        >
     </div>
-    <div class="mb-3">
+    <div class="form-group">
         <label for="popularity" class="form-label">Popularidade</label>
-        <input type="number" name="popularity" id="popularity" class="form-control" value="{{ hero.popularity }}" required>
+        <input
+            type="number"
+            id="popularity"
+            name="popularity"
+            value="{{ hero.popularity }}"
+            min="0"
+            max="100"
+            class="form-control"
+            required
+        >
     </div>
     <button type="submit" class="btn btn-primary">Salvar</button>
     <a href="/search_heroes" class="btn btn-secondary">Cancelar</a>

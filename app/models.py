@@ -21,6 +21,13 @@ class Hero(db.Model):
         else:
             self.status = "Active"
 
+    def save(self):
+        """Ensure strength_level and popularity are within bounds before saving."""
+        self.strength_level = max(0, min(100, self.strength_level))
+        self.popularity = max(0, min(100, self.popularity))
+        db.session.add(self)
+        db.session.commit()
+
 class Crime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
