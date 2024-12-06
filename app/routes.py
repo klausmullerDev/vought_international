@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
-from .models import Hero, Crime, Mission, Villain
+from .models import Hero, Crime, Mission, Villain, Battle
+
 from . import db
 from datetime import datetime
 import random  # Certifique-se de importar random
@@ -76,19 +77,13 @@ def add_crime():
         db.session.commit()
     return redirect(url_for('main.index'))
 
-@bp.route('/view_crimes/<int:hero_id>')
-def view_crimes(hero_id):
-    # Buscar o herói pelo ID
-    hero = Hero.query.get(hero_id)
-    if not hero:
-        # Retorna erro caso o herói não seja encontrado
-        return jsonify({"error": "Herói não encontrado"}), 404
+@bp.route('/view_crimes')
+def view_crimes():
+    # Buscar todos os crimes do banco de dados
+    crimes = Crime.query.all()
 
-    # Buscar os crimes relacionados ao herói
-    crimes = Crime.query.filter_by(hero_id=hero_id).all()
-
-    # Passar o herói e os crimes para o template
-    return render_template('crimes.html', hero=hero, crimes=crimes)
+    # Renderizar o template com a lista completa de crimes
+    return render_template('crimes.html', crimes=crimes)
 
 @bp.route('/add_mission', methods=['POST'])
 def add_mission():
@@ -113,73 +108,92 @@ def view_missions():
 @bp.route('/battle', methods=['GET', 'POST'])
 def battle():
     if request.method == 'GET':
-        # Obter todos os heróis e vilões para seleção
+        # Obter heróis e vilões para exibição no formulário
         heroes = Hero.query.all()
         villains = Villain.query.all()
         return render_template('battle.html', heroes=heroes, villains=villains)
-
+    
     elif request.method == 'POST':
-        # Obter IDs dos combatentes
+        # Obter IDs dos combatentes do formulário
         hero_id = int(request.form['hero_id'])
         opponent_type = request.form['opponent_type']
         opponent_id = int(request.form['opponent_id'])
 
-        # Obter o herói e o oponente (herói ou vilão)
         hero = Hero.query.get(hero_id)
         opponent = None
+
+        # Identificar oponente
         if opponent_type == 'hero':
             opponent = Hero.query.get(opponent_id)
         elif opponent_type == 'villain':
             opponent = Villain.query.get(opponent_id)
-
+        
         if not hero or not opponent:
             return jsonify({"error": "Invalid combatants selected"}), 400
 
-        # Calcular resultado
-        battle_results = simulate_battle(hero, opponent)
-        return render_template(
-            'battle_result.html',
-            hero=hero,
-            opponent=opponent,
-            battle_results=battle_results
-        )
+        # Calcular força total com elementos aleatórios
+        hero_score = hero.strength_level + hero.popularity + random.randint(-10, 10)
+        opponent_score = opponent.strength_level + opponent.popularity + random.randint(-10, 10)
 
+        # Determinar vencedor e atualizar atributos
+        if hero_score > opponent_score:
+            winner = hero
+            loser = opponent
+            result = f"{hero.name} venceu {opponent.name}!"
+        elif opponent_score > hero_score:
+            winner = opponent
+            loser = hero
+            result = f"{opponent.name} venceu {hero.name}!"
+        else:
+            winner = None
+            result = "A batalha terminou em empate!"
+
+        # Atualizar popularidade
+        if winner:
+            winner.popularity = min(winner.popularity + 5, 100)
+        loser.popularity = max(loser.popularity - 5, 0)
+
+        # Registrar batalha
+        new_battle = Battle(
+            hero1=hero,
+            hero2=opponent,
+            winner=winner,
+            timestamp=datetime.now()
+        )
+        db.session.add(new_battle)
+        db.session.commit()
+
+        # Renderizar template com resultado
+        return render_template('battle_result.html', result=result)
 
 def simulate_battle(hero, opponent):
-    # Calcular os atributos de cada combatente
     hero_score = hero.strength_level + hero.popularity + random.randint(-10, 10)
     opponent_score = opponent.strength_level + opponent.popularity + random.randint(-10, 10)
 
-    # Determinar o vencedor
     if hero_score > opponent_score:
         winner = hero
         loser = opponent
         result = f"{hero.name} venceu {opponent.name}!"
-        if isinstance(opponent, Hero):
-            opponent.battle_history = f"{opponent.battle_history}L" if opponent.battle_history else "L"
-        hero.battle_history = f"{hero.battle_history}W" if hero.battle_history else "W"
     else:
         winner = opponent
         loser = hero
         result = f"{opponent.name} venceu {hero.name}!"
-        if isinstance(hero, Hero):
-            hero.battle_history = f"{hero.battle_history}L" if hero.battle_history else "L"
-        if isinstance(opponent, Hero):
-            opponent.battle_history = f"{opponent.battle_history}W" if opponent.battle_history else "W"
 
-    # Atualizar popularidade dos combatentes
-    winner.popularity = max(0, min(100, winner.popularity + 5))
-    loser.popularity = max(0, min(100, loser.popularity - 5))
+    # Atualizar popularidade
+    winner.popularity = min(winner.popularity + 5, 100)
+    loser.popularity = max(loser.popularity - 5, 0)
 
+    # Registrar batalha
+    battle = Battle(
+        hero1_id=hero.id,
+        hero2_id=opponent.id,
+        winner_id=winner.id
+    )
+    db.session.add(battle)
     db.session.commit()
 
-    return {
-        "winner": winner.name,
-        "loser": loser.name,
-        "winner_popularity": winner.popularity,
-        "loser_popularity": loser.popularity,
-        "result_message": result
-    }
+    return result
+
 
 
 # Adicionar Rota para Remover Herói
@@ -277,4 +291,10 @@ def complete_mission(mission_id):
     db.session.commit()
     return redirect(url_for('main.view_missions'))
 
+
+@bp.route('/battle_log')
+def battle_log():
+    """Exibe o registro de todas as batalhas realizadas."""
+    battles = Battle.query.order_by(Battle.timestamp.desc()).all()
+    return render_template('battle_log.html', battles=battles)
 

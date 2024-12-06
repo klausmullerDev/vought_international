@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Crimes de {{ hero.name }}</h1>
+<h1>Lista de Crimes</h1>
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Nome</th>
+            <th>Herói</th>
+            <th>Nome do Crime</th>
             <th>Descrição</th>
             <th>Data</th>
             <th>Severidade</th>
@@ -15,6 +16,7 @@
     <tbody>
         {% for crime in crimes %}
         <tr>
+            <td>{{ crime.hero.name }}</td>
             <td>{{ crime.name }}</td>
             <td>{{ crime.description }}</td>
             <td>{{ crime.date.strftime('%Y-%m-%d') }}</td>

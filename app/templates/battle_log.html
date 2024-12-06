@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Registro de Batalhas</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Combatente 1</th>
+            <th>Combatente 2</th>
+            <th>Vencedor</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for battle in battles %}
+        <tr>
+            <td>{{ battle.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ battle.hero1.name }}</td>
+            <td>{{ battle.hero2.name }}</td>
+            <td>{{ battle.winner.name if battle.winner else "Empate" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="/" class="btn btn-secondary">Voltar</a>
+{% endblock %}

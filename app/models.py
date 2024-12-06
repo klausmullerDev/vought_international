@@ -1,4 +1,5 @@
 from . import db
+from datetime import datetime
 
 class Hero(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -62,7 +63,16 @@ class Villain(db.Model):
     strength_level = db.Column(db.Integer, default=50)
     popularity = db.Column(db.Integer, default=50)
     
-    
-    
+class Battle(db.Model):
+    __tablename__ = 'battle'
+    id = db.Column(db.Integer, primary_key=True)
+    hero1_id = db.Column(db.Integer, db.ForeignKey('hero.id'), nullable=False)
+    hero2_id = db.Column(db.Integer, db.ForeignKey('hero.id'), nullable=False)
+    winner_id = db.Column(db.Integer, db.ForeignKey('hero.id'), nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    hero1 = db.relationship('Hero', foreign_keys=[hero1_id])
+    hero2 = db.relationship('Hero', foreign_keys=[hero2_id])
+    winner = db.relationship('Hero', foreign_keys=[winner_id])
     
 
