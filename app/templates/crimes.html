@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Crimes do Herói</h1>
-<table class="table table-bordered table-striped mt-4">
+<h1>Crimes de {{ hero.name }}</h1>
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>Nome do Crime</th>
+            <th>Nome</th>
             <th>Descrição</th>
-            <th>Severidade</th>
             <th>Data</th>
+            <th>Severidade</th>
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
@@ -16,10 +17,18 @@
         <tr>
             <td>{{ crime.name }}</td>
             <td>{{ crime.description }}</td>
-            <td>{{ crime.severity }}</td>
             <td>{{ crime.date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ crime.severity }}</td>
+            <td>
+                {% if not crime.hidden %}
+                <form action="/hide_crime/{{ crime.id }}" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-warning btn-sm">Ocultar</button>
+                </form>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+<a href="/" class="btn btn-secondary">Voltar</a>
 {% endblock %}

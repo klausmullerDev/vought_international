@@ -78,8 +78,12 @@ def add_crime():
 
 @bp.route('/view_crimes/<int:hero_id>')
 def view_crimes(hero_id):
+    hero = Hero.query.get(hero_id)  # Busca o herói com base no ID
+    if not hero:
+        return jsonify({"error": "Herói não encontrado"}), 404
+
     crimes = Crime.query.filter_by(hero_id=hero_id).all()
-    return render_template('crimes.html', crimes=crimes)
+    return render_template('crimes.html', hero=hero, crimes=crimes)
 
 @bp.route('/add_mission', methods=['POST'])
 def add_mission():
@@ -160,3 +164,97 @@ def simulate_battle(hero, opponent):
 
     db.session.commit()
     return result
+
+
+# Adicionar Rota para Remover Herói
+@bp.route('/delete_hero/<int:hero_id>', methods=['POST'])
+def delete_hero(hero_id):
+    hero = Hero.query.get(hero_id)
+    if hero:
+        db.session.delete(hero)
+        db.session.commit()
+        return redirect(url_for('main.index'))
+    return jsonify({"error": "Herói não encontrado"}), 404
+
+# Adicionar Rota para Modificar Herói
+@bp.route('/edit_hero/<int:hero_id>', methods=['GET', 'POST'])
+def edit_hero(hero_id):
+    hero = Hero.query.get(hero_id)
+    if not hero:
+        return jsonify({"error": "Herói não encontrado"}), 404
+
+    if request.method == 'POST':
+        data = request.form
+        hero.name = data['name']
+        hero.age = data['age']
+        hero.gender = data['gender']
+        hero.powers = data['powers']
+        hero.strength_level = int(data['strength_level'])
+        hero.popularity = int(data['popularity'])
+        hero.update_status()
+        db.session.commit()
+        return redirect(url_for('main.index'))
+
+    return render_template('edit_hero.html', hero=hero)
+
+# Consultar Heróis por Nome, Status ou Popularidade
+@bp.route('/search_heroes', methods=['GET'])
+def search_heroes():
+    query = request.args.get('query', '')
+    filter_by = request.args.get('filter_by', 'name')
+
+    if filter_by == 'name':
+        heroes = Hero.query.filter(Hero.name.ilike(f"%{query}%")).all()
+    elif filter_by == 'status':
+        heroes = Hero.query.filter_by(status=query).all()
+    elif filter_by == 'popularity':
+        try:
+            popularity = int(query)
+            heroes = Hero.query.filter(Hero.popularity >= popularity).all()
+        except ValueError:
+            heroes = []
+    else:
+        heroes = []
+
+    return render_template('search_heroes.html', heroes=heroes)
+
+# Ocultar Crime
+@bp.route('/hide_crime/<int:crime_id>', methods=['POST'])
+def hide_crime(crime_id):
+    crime = Crime.query.get(crime_id)
+    if crime:
+        crime.hidden = True
+        db.session.commit()
+        return redirect(url_for('main.view_crimes', hero_id=crime.hero_id))
+    return jsonify({"error": "Crime não encontrado"}), 404
+
+# Exibir Crimes Ocultos
+@bp.route('/hidden_crimes')
+def hidden_crimes():
+    crimes = Crime.query.filter_by(hidden=True).all()
+    return render_template('hidden_crimes.html', crimes=crimes)
+
+@bp.route('/complete_mission/<int:mission_id>', methods=['POST'])
+def complete_mission(mission_id):
+    mission = Mission.query.get(mission_id)
+    if not mission:
+        return jsonify({"error": "Missão não encontrada"}), 404
+
+    result = request.form['result']
+    mission.result = result
+
+    hero_ids = [int(id) for id in mission.assigned_heroes.split(',')]
+    for hero_id in hero_ids:
+        hero = Hero.query.get(hero_id)
+        if result == 'Sucesso':
+            hero.strength_level += mission.reward_strength
+            hero.popularity += mission.reward_popularity
+        elif result == 'Fracasso':
+            hero.strength_level -= 5
+            hero.popularity -= 10
+        hero.update_status()
+
+    db.session.commit()
+    return redirect(url_for('main.view_missions'))
+
+

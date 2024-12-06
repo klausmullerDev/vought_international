@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Editar Herói</h1>
+<form method="POST" action="/edit_hero/{{ hero.id }}">
+    <div class="mb-3">
+        <label for="name" class="form-label">Nome</label>
+        <input type="text" name="name" id="name" class="form-control" value="{{ hero.name }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="age" class="form-label">Idade</label>
+        <input type="number" name="age" id="age" class="form-control" value="{{ hero.age }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="gender" class="form-label">Gênero</label>
+        <input type="text" name="gender" id="gender" class="form-control" value="{{ hero.gender }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="powers" class="form-label">Poderes</label>
+        <textarea name="powers" id="powers" class="form-control" required>{{ hero.powers }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="strength_level" class="form-label">Nível de Força</label>
+        <input type="number" name="strength_level" id="strength_level" class="form-control" value="{{ hero.strength_level }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="popularity" class="form-label">Popularidade</label>
+        <input type="number" name="popularity" id="popularity" class="form-control" value="{{ hero.popularity }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="/search_heroes" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

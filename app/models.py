@@ -28,6 +28,7 @@ class Crime(db.Model):
     date = db.Column(db.DateTime, nullable=False)
     severity = db.Column(db.Integer, nullable=False)
     hero_id = db.Column(db.Integer, db.ForeignKey('hero.id'), nullable=False)
+    hidden = db.Column(db.Boolean, default=False)  # Novo atributo
 
     @staticmethod
     def adjust_hero_popularity(hero, severity):
@@ -50,3 +51,8 @@ class Villain(db.Model):
     evil_plan = db.Column(db.Text, nullable=False)
     strength_level = db.Column(db.Integer, default=50)
     popularity = db.Column(db.Integer, default=50)
+    
+    
+    
+    
+

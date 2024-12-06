@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Heróis</h1>
+<a href="/" class="btn btn-success mb-3">Adicionar Herói</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Status</th>
+            <th>Popularidade</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for hero in heroes %}
+        <tr>
+            <td>{{ hero.name }}</td>
+            <td>{{ hero.status }}</td>
+            <td>{{ hero.popularity }}</td>
+            <td>
+                <a href="/edit_hero/{{ hero.id }}" class="btn btn-warning btn-sm">Editar</a>
+                <form action="/delete_hero/{{ hero.id }}" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+

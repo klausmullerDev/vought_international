@@ -2,9 +2,6 @@
 
 {% block content %}
 <h1>Resultado da Batalha</h1>
-
-<p><strong>{{ hero.name }}</strong> lutou contra <strong>{{ opponent.name }}</strong>.</p>
-<p><strong>Resultado:</strong> {{ result }}</p>
-
-<a href="/battle" class="btn btn-secondary">Voltar</a>
+<p><strong>Vencedor:</strong> {{ result }}</p>
+<a href="/battle" class="btn btn-secondary">Nova Batalha</a>
 {% endblock %}
