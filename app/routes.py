@@ -78,11 +78,16 @@ def add_crime():
 
 @bp.route('/view_crimes/<int:hero_id>')
 def view_crimes(hero_id):
-    hero = Hero.query.get(hero_id)  # Busca o herói com base no ID
+    # Buscar o herói pelo ID
+    hero = Hero.query.get(hero_id)
     if not hero:
+        # Retorna erro caso o herói não seja encontrado
         return jsonify({"error": "Herói não encontrado"}), 404
 
+    # Buscar os crimes relacionados ao herói
     crimes = Crime.query.filter_by(hero_id=hero_id).all()
+
+    # Passar o herói e os crimes para o template
     return render_template('crimes.html', hero=hero, crimes=crimes)
 
 @bp.route('/add_mission', methods=['POST'])

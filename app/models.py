@@ -31,9 +31,12 @@ class Crime(db.Model):
     hidden = db.Column(db.Boolean, default=False)  # Novo atributo
 
     @staticmethod
-    def adjust_hero_popularity(hero, severity):
-        hero.popularity -= severity
-        hero.update_status()
+    def adjust_popularity(entity, severity):
+        entity.popularity -= severity
+        if isinstance(entity, Hero):
+            entity.update_status()
+        elif isinstance(entity, Villain):
+            entity.update_status()
 
 class Mission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
