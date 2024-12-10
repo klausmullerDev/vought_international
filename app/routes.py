@@ -3,6 +3,7 @@ from .models import Hero, Crime, Mission, Villain, Battle
 from . import db
 from datetime import datetime
 import random  
+import pytz
 
 bp = Blueprint('main', __name__)
 
@@ -37,10 +38,14 @@ def simulate_battle(hero, opponent):
 
         if hero_roll > opponent_roll:
             damage = roll_dice(sides=10)
-            opponent_hp -= damage
-            log.append(f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} > {opponent_roll:.1f}. Causou {damage} de dano.")
+            opponent_hp = max(0, opponent_hp - damage)  # Evitar valores negativos
+            log.append(
+                f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} > {opponent_roll:.1f}. Causou {damage} de dano."
+            )
         else:
-            log.append(f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} <= {opponent_roll:.1f}. Ataque falhou.")
+            log.append(
+                f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} <= {opponent_roll:.1f}. Ataque falhou."
+            )
 
         if opponent_hp <= 0:
             log.append(f"{opponent.name} foi derrotado!")
@@ -52,31 +57,39 @@ def simulate_battle(hero, opponent):
 
         if opponent_roll > hero_roll:
             damage = roll_dice(sides=10)
-            hero_hp -= damage
-            log.append(f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} > {hero_roll:.1f}. Causou {damage} de dano.")
+            hero_hp = max(0, hero_hp - damage)  # Evitar valores negativos
+            log.append(
+                f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} > {hero_roll:.1f}. Causou {damage} de dano."
+            )
         else:
-            log.append(f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} <= {hero_roll:.1f}. Ataque falhou.")
+            log.append(
+                f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} <= {hero_roll:.1f}. Ataque falhou."
+            )
 
         if hero_hp <= 0:
             log.append(f"{hero.name} foi derrotado!")
             break
 
-    if hero_hp > 0:
-        winner = hero
-    else:
-        winner = opponent
+    # Determinar o vencedor
+    winner = hero if hero_hp > 0 else opponent
 
-    # Registrar batalha
-    battle = Battle(
-        hero1_id=hero.id,
-        hero2_id=opponent.id,
-        winner_id=winner.id if winner else None,
-        timestamp=datetime.utcnow()
-    )
-    db.session.add(battle)
-    db.session.commit()
+    # Registrar batalha no banco de dados
+    try:
+        battle = Battle(
+            hero1_id=hero.id,
+            hero2_id=opponent.id,
+            winner_id=winner.id if winner else None,
+            timestamp=datetime.now(pytz.timezone('America/Sao_Paulo'))  # Garantir fuso horário correto
+        )
+        db.session.add(battle)
+        db.session.commit()
+    except Exception as e:
+        log.append(f"Erro ao salvar a batalha: {e}")
+        db.session.rollback()
+        return None, log
 
     return winner, log
+
 
 
 @bp.route('/add_crime', methods=['POST'])
@@ -405,7 +418,7 @@ def simulate_battle(hero, opponent):
             hero1_id=hero.id,
             hero2_id=opponent.id,
             winner_id=winner.id if winner else None,
-            timestamp=datetime.utcnow()
+            timestamp = datetime.now(pytz.timezone('America/Sao_Paulo'))
         )
         db.session.add(battle)
         db.session.commit()

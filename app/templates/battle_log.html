@@ -14,7 +14,7 @@
     <tbody>
         {% for battle in battles %}
         <tr>
-            <td>{{ battle.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ battle.timestamp.astimezone(pytz.timezone('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S') }}</td>
             <td>{{ battle.hero1.name if battle.hero1 else "Desconhecido" }}</td>
             <td>{{ battle.hero2.name if battle.hero2 else "Desconhecido" }}</td>
             <td>{{ battle.winner.name if battle.winner else "Empate" }}</td>

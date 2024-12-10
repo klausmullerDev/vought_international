@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import pytz
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -15,5 +16,9 @@ def create_app():
 
     from .routes import bp as routes_bp
     app.register_blueprint(routes_bp)
+
+    @app.context_processor
+    def inject_helpers():
+        return {'pytz': pytz}
 
     return app
