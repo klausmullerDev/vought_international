@@ -1,20 +1,48 @@
-# Ignore arquivos de ambiente virtual
-venv/
-
-# Ignore arquivos temporários do Python
+# Python
 *.pyc
+*.pyo
+*.pyd
 __pycache__/
-
-# Ignore configurações do editor
-.vscode/
-.idea/
-
-# Ignore o banco de dados local
 *.sqlite3
-*.db
+instance/
+env/
+venv/
+.venv/
 
-# Ignore arquivos de log
+# Logs
 *.log
 
-# Ignore arquivos do sistema
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# Testes e Debug
+.tox/
+.coverage
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Configurações do Sistema
 .DS_Store
+Thumbs.db
+*.tmp
+
+# Arquivos específicos de ambiente
+.env
+*.local
+
+# Node.js (caso use ferramentas de frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos do Git
+!.gitignore
