@@ -355,7 +355,12 @@ def battle():
         opponent_id = int(request.form['opponent_id'])
 
         hero = Hero.query.get(hero_id)
-        opponent = Hero.query.get(opponent_id) if opponent_type == 'hero' else Villain.query.get(opponent_id)
+        opponent = None
+
+        if opponent_type == 'hero':
+            opponent = Hero.query.get(opponent_id)
+        elif opponent_type == 'villain':
+            opponent = Villain.query.get(opponent_id)
 
         if not hero or not opponent:
             return jsonify({"error": "Herói ou oponente inválido"}), 400
@@ -368,9 +373,6 @@ def battle():
         return render_template('battle_result.html', winner=winner, log=log)
 
 
-def roll_dice(sides=20):
-    """Simula uma rolagem de dado."""
-    return random.randint(1, sides)
 
 def simulate_battle(hero, opponent):
     """Simula uma batalha entre um herói e um oponente."""
@@ -430,3 +432,7 @@ def simulate_battle(hero, opponent):
     return winner, log
 
 
+def roll_dice(sides=20):
+    """Simula uma rolagem de dado."""
+    import random
+    return random.randint(1, sides)

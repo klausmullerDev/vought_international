@@ -3,10 +3,22 @@
 {% block content %}
 <h1>Resultado da Batalha</h1>
 <p><strong>Vencedor:</strong> {{ winner.name }}</p>
-<ul>
-    {% for entry in log %}
-    <li>{{ entry }}</li>
-    {% endfor %}
+<ul id="battle-log">
+    <!-- As linhas do log serão adicionadas aqui -->
 </ul>
 <a href="/battle" class="btn btn-secondary">Nova Batalha</a>
+
+<script>
+    const logEntries = {{ log|tojson }};
+    const logContainer = document.getElementById("battle-log");
+    let delay = 500; // Delay de 500ms entre as mensagens
+
+    logEntries.forEach((entry, index) => {
+        setTimeout(() => {
+            const li = document.createElement("li");
+            li.textContent = entry;
+            logContainer.appendChild(li);
+        }, delay * index);
+    });
+</script>
 {% endblock %}
