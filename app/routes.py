@@ -25,31 +25,59 @@ def add_hero():
     return redirect(url_for('main.index'))
 
 @bp.route('/simulate_battle', methods=['POST'])
-def simulate_battle():
-    hero1_id = int(request.form['hero1_id'])
-    hero2_id = int(request.form['hero2_id'])
+def simulate_battle(hero, opponent):
+    log = []
+    hero_hp = 100
+    opponent_hp = 100
 
-    hero1 = Hero.query.get(hero1_id)
-    hero2 = Hero.query.get(hero2_id)
+    while hero_hp > 0 and opponent_hp > 0:
+        # Turno do herói
+        hero_roll = roll_dice() + (hero.popularity / 10)
+        opponent_roll = roll_dice() + (opponent.popularity / 10)
 
-    if not hero1 or not hero2:
-        return jsonify({"error": "Invalid heroes"}), 400
+        if hero_roll > opponent_roll:
+            damage = roll_dice(sides=10)
+            opponent_hp -= damage
+            log.append(f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} > {opponent_roll:.1f}. Causou {damage} de dano.")
+        else:
+            log.append(f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} <= {opponent_roll:.1f}. Ataque falhou.")
 
-    # Cálculo do resultado
-    hero1_score = hero1.strength_level + hero1.popularity + random.randint(-10, 10)
-    hero2_score = hero2.strength_level + hero2.popularity + random.randint(-10, 10)
+        if opponent_hp <= 0:
+            log.append(f"{opponent.name} foi derrotado!")
+            break
 
-    if hero1_score > hero2_score:
-        hero1.battle_history = f"{hero1.battle_history}W" if hero1.battle_history else "W"
-        hero2.battle_history = f"{hero2.battle_history}L" if hero2.battle_history else "L"
-        winner = hero1
+        # Turno do oponente
+        opponent_roll = roll_dice() + (opponent.popularity / 10)
+        hero_roll = roll_dice() + (hero.popularity / 10)
+
+        if opponent_roll > hero_roll:
+            damage = roll_dice(sides=10)
+            hero_hp -= damage
+            log.append(f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} > {hero_roll:.1f}. Causou {damage} de dano.")
+        else:
+            log.append(f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} <= {hero_roll:.1f}. Ataque falhou.")
+
+        if hero_hp <= 0:
+            log.append(f"{hero.name} foi derrotado!")
+            break
+
+    if hero_hp > 0:
+        winner = hero
     else:
-        hero2.battle_history = f"{hero2.battle_history}W" if hero2.battle_history else "W"
-        hero1.battle_history = f"{hero1.battle_history}L" if hero1.battle_history else "L"
-        winner = hero2
+        winner = opponent
 
+    # Registrar batalha
+    battle = Battle(
+        hero1_id=hero.id,
+        hero2_id=opponent.id,
+        winner_id=winner.id if winner else None,
+        timestamp=datetime.utcnow()
+    )
+    db.session.add(battle)
     db.session.commit()
-    return jsonify({"winner": winner.name})
+
+    return winner, log
+
 
 @bp.route('/add_crime', methods=['POST'])
 def add_crime():
@@ -120,14 +148,13 @@ def simulate_battle(hero, opponent):
 
     # Registrar batalha
     battle = Battle(
-        hero1_id=hero.id,
-        hero2_id=opponent.id,
-        winner_id=winner.id
+    hero1_id=hero.id,
+    hero2_id=opponent.id,
+    winner_id=winner.id if winner else None,
+    timestamp=datetime.utcnow()
     )
     db.session.add(battle)
     db.session.commit()
-
-    return result
 
 
 
@@ -208,9 +235,9 @@ def hidden_crimes():
 
 @bp.route('/battle_log')
 def battle_log():
-    
     battles = Battle.query.order_by(Battle.timestamp.desc()).all()
     return render_template('battle_log.html', battles=battles)
+
 
 @bp.route('/add_mission', methods=['POST', 'GET'])
 def add_mission():
@@ -317,26 +344,23 @@ def battle():
         hero = Hero.query.get(hero_id)
         opponent = Hero.query.get(opponent_id) if opponent_type == 'hero' else Villain.query.get(opponent_id)
 
+        if not hero or not opponent:
+            return jsonify({"error": "Herói ou oponente inválido"}), 400
+
         winner, log = simulate_battle(hero, opponent)
 
-        # Atualizar popularidade
-        if winner == hero:
-            hero.popularity = min(100, hero.popularity + 5)
-            opponent.popularity = max(0, opponent.popularity - 5)
-        else:
-            opponent.popularity = min(100, opponent.popularity + 5)
-            hero.popularity = max(0, hero.popularity - 5)
-
-        db.session.commit()
+        if winner is None:
+            return jsonify({"error": "Erro ao salvar batalha"}), 500
 
         return render_template('battle_result.html', winner=winner, log=log)
+
 
 def roll_dice(sides=20):
     """Simula uma rolagem de dado."""
     return random.randint(1, sides)
 
 def simulate_battle(hero, opponent):
-    """Simula uma batalha entre um herói e um oponente (vilão ou herói)."""
+    """Simula uma batalha entre um herói e um oponente."""
     log = []
     hero_hp = 100
     opponent_hp = 100
@@ -353,7 +377,6 @@ def simulate_battle(hero, opponent):
         else:
             log.append(f"{hero.name} atacou {opponent.name}. Jogada: {hero_roll:.1f} <= {opponent_roll:.1f}. Ataque falhou.")
 
-        # Verifica se o oponente ainda está de pé
         if opponent_hp <= 0:
             log.append(f"{opponent.name} foi derrotado!")
             break
@@ -369,16 +392,28 @@ def simulate_battle(hero, opponent):
         else:
             log.append(f"{opponent.name} atacou {hero.name}. Jogada: {opponent_roll:.1f} <= {hero_roll:.1f}. Ataque falhou.")
 
-        # Verifica se o herói ainda está de pé
         if hero_hp <= 0:
             log.append(f"{hero.name} foi derrotado!")
             break
 
     # Determinar o vencedor
-    if hero_hp > 0:
-        winner = hero
-    else:
-        winner = opponent
+    winner = hero if hero_hp > 0 else opponent
+
+    # Registrar batalha
+    try:
+        battle = Battle(
+            hero1_id=hero.id,
+            hero2_id=opponent.id,
+            winner_id=winner.id if winner else None,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(battle)
+        db.session.commit()
+    except Exception as e:
+        print(f"Erro ao salvar batalha: {e}")
+        db.session.rollback()
+        return None, log
 
     return winner, log
+
 

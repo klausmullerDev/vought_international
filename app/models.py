@@ -76,5 +76,4 @@ class Battle(db.Model):
     hero1 = db.relationship('Hero', foreign_keys=[hero1_id])
     hero2 = db.relationship('Hero', foreign_keys=[hero2_id])
     winner = db.relationship('Hero', foreign_keys=[winner_id])
-    
 

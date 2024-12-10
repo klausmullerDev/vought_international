@@ -6,8 +6,8 @@
     <thead>
         <tr>
             <th>Data</th>
-            <th>Combatente 1</th>
-            <th>Combatente 2</th>
+            <th>Herói 1</th>
+            <th>Herói 2</th>
             <th>Vencedor</th>
         </tr>
     </thead>
@@ -15,9 +15,13 @@
         {% for battle in battles %}
         <tr>
             <td>{{ battle.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            <td>{{ battle.hero1.name }}</td>
-            <td>{{ battle.hero2.name }}</td>
+            <td>{{ battle.hero1.name if battle.hero1 else "Desconhecido" }}</td>
+            <td>{{ battle.hero2.name if battle.hero2 else "Desconhecido" }}</td>
             <td>{{ battle.winner.name if battle.winner else "Empate" }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4" class="text-center">Nenhuma batalha registrada.</td>
         </tr>
         {% endfor %}
     </tbody>
