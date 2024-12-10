@@ -209,23 +209,50 @@ def edit_hero(hero_id):
 # Consultar Heróis por Nome, Status ou Popularidade
 @bp.route('/search_heroes', methods=['GET'])
 def search_heroes():
-    query = request.args.get('query', '')
+    query = request.args.get('query', '').strip()
     filter_by = request.args.get('filter_by', 'name')
+    order = request.args.get('order', 'asc')  # Padrão para ordem crescente
 
-    if filter_by == 'name':
-        heroes = Hero.query.filter(Hero.name.ilike(f"%{query}%")).all()
-    elif filter_by == 'status':
-        heroes = Hero.query.filter_by(status=query).all()
-    elif filter_by == 'popularity':
-        try:
-            popularity = int(query)
-            heroes = Hero.query.filter(Hero.popularity >= popularity).all()
-        except ValueError:
-            heroes = []
+    heroes = None
+
+    # Filtragem de acordo com o campo escolhido
+    if not query:
+        heroes = Hero.query
     else:
-        heroes = []
+        if filter_by == 'name':
+            heroes = Hero.query.filter(Hero.name.ilike(f"%{query}%"))
+        elif filter_by == 'status':
+            heroes = Hero.query.filter_by(status=query)
+        elif filter_by == 'popularity':
+            try:
+                popularity = int(query)
+                heroes = Hero.query.filter(Hero.popularity >= popularity)
+            except ValueError:
+                heroes = Hero.query.filter_by()  # Sem correspondência
+        else:
+            heroes = Hero.query
 
-    return render_template('search_heroes.html', heroes=heroes)
+    # Ordenação
+    if heroes is not None:
+        if filter_by == 'popularity':
+            if order == 'desc':
+                heroes = heroes.order_by(Hero.popularity.desc())
+            else:
+                heroes = heroes.order_by(Hero.popularity.asc())
+        else:
+            heroes = heroes.order_by(Hero.name.asc())
+
+    heroes = heroes.all()
+    return render_template(
+        'search_heroes.html', 
+        heroes=heroes, 
+        query=query, 
+        filter_by=filter_by, 
+        order=order
+    )
+
+
+
 
 # Ocultar Crime
 @bp.route('/hide_crime/<int:crime_id>', methods=['POST'])

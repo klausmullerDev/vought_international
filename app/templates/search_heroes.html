@@ -6,14 +6,28 @@
 <form method="GET" action="/search_heroes" class="mb-3">
     <div class="mb-3">
         <label for="query" class="form-label">Busca</label>
-        <input type="text" name="query" id="query" class="form-control" placeholder="Digite o nome ou outro critério">
+        <input 
+            type="text" 
+            name="query" 
+            id="query" 
+            class="form-control" 
+            placeholder="Digite o nome ou outro critério"
+            value="{{ query if query else '' }}"
+        >
     </div>
     <div class="mb-3">
         <label for="filter_by" class="form-label">Filtrar por</label>
         <select name="filter_by" id="filter_by" class="form-select">
-            <option value="name">Nome</option>
-            <option value="status">Status</option>
-            <option value="popularity">Popularidade</option>
+            <option value="name" {% if filter_by == "name" %}selected{% endif %}>Nome</option>
+            <option value="status" {% if filter_by == "status" %}selected{% endif %}>Status</option>
+            <option value="popularity" {% if filter_by == "popularity" %}selected{% endif %}>Popularidade</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="order" class="form-label">Ordenar Popularidade</label>
+        <select name="order" id="order" class="form-select">
+            <option value="asc" {% if order == "asc" %}selected{% endif %}>Crescente</option>
+            <option value="desc" {% if order == "desc" %}selected{% endif %}>Decrescente</option>
         </select>
     </div>
     <button type="submit" class="btn btn-primary">Buscar</button>
