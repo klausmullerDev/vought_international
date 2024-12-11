@@ -16,7 +16,7 @@ h1 {
     background-color: #007bff;
     transition: width 0.5s ease;
 }
-/* Adicione uma classe para ocultar elementos */
+
 .hidden {
     display: none;
 }

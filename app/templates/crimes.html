@@ -1,14 +1,66 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Crimes de {{ hero.name }}</h1>
+<h1>Crimes</h1>
+
+<!-- Botão para abrir o modal de adicionar crime -->
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCrimeModal">
+    Adicionar Crime
+</button>
+
+<!-- Modal para adicionar crime -->
+<div class="modal fade" id="addCrimeModal" tabindex="-1" aria-labelledby="addCrimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/crimes">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCrimeModalLabel">Adicionar Crime</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome do Crime</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="description" name="description" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Data</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="severity" class="form-label">Severidade</label>
+                        <input type="number" class="form-control" id="severity" name="severity" min="1" max="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="hero_id" class="form-label">Herói</label>
+                        <select class="form-select" id="hero_id" name="hero_id" required>
+                            {% for hero in heroes %}
+                            <option value="{{ hero.id }}">{{ hero.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela para listar crimes -->
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Nome do Crime</th>
+            <th>Nome</th>
             <th>Descrição</th>
             <th>Data</th>
             <th>Severidade</th>
+            <th>Herói</th>
             <th>Ações</th>
         </tr>
     </thead>
@@ -19,20 +71,17 @@
             <td>{{ crime.description }}</td>
             <td>{{ crime.date.strftime('%Y-%m-%d') }}</td>
             <td>{{ crime.severity }}</td>
+            <td>{{ crime.hero.name }}</td>
             <td>
-                {% if crime.hidden %}
-                <form action="/unhide_crime/{{ crime.id }}" method="post" style="display: inline;">
-                    <button type="submit" class="btn btn-success btn-sm">Desocultar</button>
+                <!-- Formulário para excluir crime -->
+                <form action="/delete_crime/{{ crime.id }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                 </form>
-                {% else %}
-                <form action="/hide_crime/{{ crime.id }}" method="post" style="display: inline;">
-                    <button type="submit" class="btn btn-warning btn-sm">Ocultar</button>
-                </form>
-                {% endif %}
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
 <a href="/" class="btn btn-secondary">Voltar</a>
 {% endblock %}

@@ -117,18 +117,30 @@ def add_crime():
         db.session.commit()
     return redirect(url_for('main.index'))
 
-@bp.route('/view_crimes/<int:hero_id>')
-def view_crimes(hero_id):
-    # Buscar o herói pelo ID
-    hero = Hero.query.get(hero_id)
-    if not hero:
-        return jsonify({"error": "Herói não encontrado"}), 404
+@bp.route('/crimes', methods=['GET', 'POST'])
+def crimes():
+    if request.method == 'POST':
+        # Adicionar crime
+        data = request.form
+        hero_id = data.get('hero_id')
+        hero = Hero.query.get(hero_id)
+        if hero:
+            new_crime = Crime(
+                name=data['name'],
+                description=data['description'],
+                date=datetime.strptime(data['date'], '%Y-%m-%d'),
+                severity=int(data['severity']),
+                hero_id=hero_id
+            )
+            # Atualizar popularidade do herói
+            hero.popularity -= int(data['severity'])
+            hero.update_status()
+            db.session.add(new_crime)
+            db.session.commit()
+    crimes = Crime.query.all()
+    heroes = Hero.query.all()
+    return render_template('crimes.html', crimes=crimes, heroes=heroes)
 
-    # Buscar os crimes associados ao herói
-    crimes = Crime.query.filter_by(hero_id=hero_id).all()
-
-    # Renderizar o template com os crimes do herói
-    return render_template('crimes.html', hero=hero, crimes=crimes) 
 
 @bp.route('/unhide_crime/<int:crime_id>', methods=['POST'])
 def unhide_crime(crime_id):
@@ -139,6 +151,17 @@ def unhide_crime(crime_id):
         crime.hidden = False
         db.session.commit()
         return redirect(url_for('main.view_crimes', hero_id=crime.hero_id))
+    return jsonify({"error": "Crime não encontrado"}), 404
+
+
+
+@bp.route('/delete_crime/<int:crime_id>', methods=['POST'])
+def delete_crime(crime_id):
+    crime = Crime.query.get(crime_id)
+    if crime:
+        db.session.delete(crime)
+        db.session.commit()
+        return redirect(url_for('main.crimes'))
     return jsonify({"error": "Crime não encontrado"}), 404
 
 
@@ -270,13 +293,45 @@ def hidden_crimes():
     crimes = Crime.query.filter_by(hidden=True).all()
     return render_template('hidden_crimes.html', crimes=crimes)
 
-
-
-
 @bp.route('/battle_log')
 def battle_log():
     battles = Battle.query.order_by(Battle.timestamp.desc()).all()
-    return render_template('battle_log.html', battles=battles)
+    heroes = Hero.query.all()  # Para o modal de adicionar batalhas
+    return render_template('battle_log.html', battles=battles, heroes=heroes)
+
+
+@bp.route('/add_battle', methods=['POST'])
+def add_battle():
+    data = request.form
+    hero1_id = data.get('hero1_id')
+    hero2_id = data.get('hero2_id')
+    winner_id = data.get('winner_id') if data.get('winner_id') else None
+
+    hero1 = Hero.query.get(hero1_id)
+    hero2 = Hero.query.get(hero2_id)
+    winner = Hero.query.get(winner_id) if winner_id else None
+
+    if hero1 and hero2:
+        battle = Battle(
+            hero1_id=hero1.id,
+            hero2_id=hero2.id,
+            winner_id=winner.id if winner else None,
+            timestamp=datetime.now(pytz.timezone('America/Sao_Paulo'))
+        )
+        db.session.add(battle)
+        db.session.commit()
+        return redirect(url_for('main.battle_log'))
+    return jsonify({"error": "Heróis inválidos"}), 400
+
+@bp.route('/delete_battle/<int:battle_id>', methods=['POST'])
+def delete_battle(battle_id):
+    battle = Battle.query.get(battle_id)
+    if battle:
+        db.session.delete(battle)
+        db.session.commit()
+        return redirect(url_for('main.battle_log'))
+    return jsonify({"error": "Batalha não encontrada"}), 404
+
 
 
 @bp.route('/add_mission', methods=['POST', 'GET'])

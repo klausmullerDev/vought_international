@@ -2,6 +2,58 @@
 
 {% block content %}
 <h1>Registro de Batalhas</h1>
+
+<!-- Botão para abrir o modal de adicionar batalha -->
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addBattleModal">
+    Adicionar Batalha
+</button>
+
+<!-- Modal para adicionar batalha -->
+<div class="modal fade" id="addBattleModal" tabindex="-1" aria-labelledby="addBattleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/add_battle">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addBattleModalLabel">Adicionar Batalha</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="hero1_id" class="form-label">Herói 1</label>
+                        <select class="form-select" id="hero1_id" name="hero1_id" required>
+                            {% for hero in heroes %}
+                            <option value="{{ hero.id }}">{{ hero.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="hero2_id" class="form-label">Herói 2</label>
+                        <select class="form-select" id="hero2_id" name="hero2_id" required>
+                            {% for hero in heroes %}
+                            <option value="{{ hero.id }}">{{ hero.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="winner_id" class="form-label">Vencedor</label>
+                        <select class="form-select" id="winner_id" name="winner_id">
+                            <option value="">Empate</option>
+                            {% for hero in heroes %}
+                            <option value="{{ hero.id }}">{{ hero.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela de batalhas -->
 <table class="table table-striped">
     <thead>
         <tr>
@@ -9,6 +61,7 @@
             <th>Herói 1</th>
             <th>Herói 2</th>
             <th>Vencedor</th>
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
@@ -18,10 +71,16 @@
             <td>{{ battle.hero1.name if battle.hero1 else "Desconhecido" }}</td>
             <td>{{ battle.hero2.name if battle.hero2 else "Desconhecido" }}</td>
             <td>{{ battle.winner.name if battle.winner else "Empate" }}</td>
+            <td>
+                <!-- Formulário para excluir batalha -->
+                <form action="/delete_battle/{{ battle.id }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                </form>
+            </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="4" class="text-center">Nenhuma batalha registrada.</td>
+            <td colspan="5" class="text-center">Nenhuma batalha registrada.</td>
         </tr>
         {% endfor %}
     </tbody>
