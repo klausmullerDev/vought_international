@@ -119,27 +119,38 @@ def add_crime():
 
 @bp.route('/crimes', methods=['GET', 'POST'])
 def crimes():
-    if request.method == 'POST':
-        # Adicionar crime
-        data = request.form
-        hero_id = data.get('hero_id')
-        hero = Hero.query.get(hero_id)
-        if hero:
-            new_crime = Crime(
-                name=data['name'],
-                description=data['description'],
-                date=datetime.strptime(data['date'], '%Y-%m-%d'),
-                severity=int(data['severity']),
-                hero_id=hero_id
-            )
-            # Atualizar popularidade do herói
-            hero.popularity -= int(data['severity'])
-            hero.update_status()
-            db.session.add(new_crime)
-            db.session.commit()
-    crimes = Crime.query.all()
+    query = request.args.get('query', '').strip()
+    filter_by = request.args.get('filter_by', 'name')
+    severity_min = request.args.get('severity_min', 0, type=int)
+    severity_max = request.args.get('severity_max', 100, type=int)
+    hero_id = request.args.get('hero_id', None, type=int)
+
+    crimes_query = Crime.query
+
+    # Filtragem por busca geral
+    if query:
+        crimes_query = crimes_query.filter(Crime.name.ilike(f"%{query}%") | Crime.description.ilike(f"%{query}%"))
+    
+    # Filtragem por severidade
+    crimes_query = crimes_query.filter(Crime.severity >= severity_min, Crime.severity <= severity_max)
+    
+    # Filtragem por herói
+    if hero_id:
+        crimes_query = crimes_query.filter(Crime.hero_id == hero_id)
+    
+    # Filtragem adicional
+    if filter_by == 'name':
+        crimes_query = crimes_query.order_by(Crime.name.asc())
+    elif filter_by == 'date':
+        crimes_query = crimes_query.order_by(Crime.date.desc())
+    elif filter_by == 'severity':
+        crimes_query = crimes_query.order_by(Crime.severity.desc())
+
+    crimes = crimes_query.all()
     heroes = Hero.query.all()
-    return render_template('crimes.html', crimes=crimes, heroes=heroes)
+
+    return render_template('crimes.html', crimes=crimes, heroes=heroes, query=query, severity_min=severity_min, severity_max=severity_max, hero_id=hero_id, filter_by=filter_by)
+
 
 
 
@@ -351,11 +362,48 @@ def add_mission():
         return redirect(url_for('main.view_missions'))
 
 
-@bp.route('/view_missions')
+@bp.route('/view_missions', methods=['GET'])
 def view_missions():
-    """Lista todas as missões."""
-    missions = Mission.query.all()
-    return render_template('missions.html', missions=missions)
+    """Lista todas as missões com opções de filtro."""
+    query = request.args.get('query', '').strip()
+    filter_by = request.args.get('filter_by', 'name')
+    status = request.args.get('status', 'all')
+    difficulty_min = request.args.get('difficulty_min', 0, type=int)
+    difficulty_max = request.args.get('difficulty_max', 100, type=int)
+
+    missions_query = Mission.query
+
+    # Filtrar por busca geral
+    if query:
+        missions_query = missions_query.filter(Mission.name.ilike(f"%{query}%") | Mission.description.ilike(f"%{query}%"))
+
+    # Filtrar por status
+    if status != 'all':
+        missions_query = missions_query.filter(Mission.status == status)
+
+    # Filtrar por dificuldade
+    missions_query = missions_query.filter(Mission.difficulty >= difficulty_min, Mission.difficulty <= difficulty_max)
+
+    # Ordenar por critério
+    if filter_by == 'name':
+        missions_query = missions_query.order_by(Mission.name.asc())
+    elif filter_by == 'difficulty':
+        missions_query = missions_query.order_by(Mission.difficulty.desc())
+    elif filter_by == 'status':
+        missions_query = missions_query.order_by(Mission.status.asc())
+
+    missions = missions_query.all()
+
+    return render_template(
+        'missions.html',
+        missions=missions,
+        query=query,
+        filter_by=filter_by,
+        status=status,
+        difficulty_min=difficulty_min,
+        difficulty_max=difficulty_max
+    )
+
 
 
 @bp.route('/edit_mission/<int:mission_id>', methods=['GET', 'POST'])

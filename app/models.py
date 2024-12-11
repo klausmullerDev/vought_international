@@ -52,11 +52,12 @@ class Mission(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     difficulty = db.Column(db.Integer, nullable=False)
-    assigned_heroes = db.Column(db.Text, nullable=False)  # IDs dos heróis em uma string
+    assigned_heroes = db.Column(db.Text, nullable=False)
     result = db.Column(db.String(20), nullable=True)
-    reward_strength = db.Column(db.Integer, default=0)  # Recompensa de força
-    reward_popularity = db.Column(db.Integer, default=0)  # Recompensa de popularidade
-    status = db.Column(db.String(20), default="Pendente")  # Novo campo para o status
+    reward_strength = db.Column(db.Integer, default=0)  # Adicione se não existir
+    reward_popularity = db.Column(db.Integer, default=0)  # Adicione se não existir
+    status = db.Column(db.String(20), default="Pendente")
+
 
 
 class Villain(db.Model):

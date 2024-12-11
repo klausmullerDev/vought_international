@@ -2,7 +2,45 @@
 
 {% block content %}
 <h1>Missões</h1>
+
+<!-- Botão para adicionar nova missão -->
 <a href="/add_mission" class="btn btn-success mb-3">Adicionar Nova Missão</a>
+
+<!-- Filtros -->
+<form method="GET" action="/view_missions" class="mb-3">
+    <div class="row">
+        <div class="col-md-4">
+            <input type="text" name="query" class="form-control" placeholder="Buscar por nome ou descrição" value="{{ query }}">
+        </div>
+        <div class="col-md-2">
+            <select name="status" class="form-select">
+                <option value="all" {% if status == 'all' %}selected{% endif %}>Todos os Status</option>
+                <option value="Pendente" {% if status == 'Pendente' %}selected{% endif %}>Pendente</option>
+                <option value="Concluída" {% if status == 'Concluída' %}selected{% endif %}>Concluída</option>
+                <option value="Falhada" {% if status == 'Falhada' %}selected{% endif %}>Falhada</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="difficulty_min" class="form-control" placeholder="Dificuldade Min" value="{{ difficulty_min }}">
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="difficulty_max" class="form-control" placeholder="Dificuldade Max" value="{{ difficulty_max }}">
+        </div>
+        <div class="col-md-2">
+            <select name="filter_by" class="form-select">
+                <option value="name" {% if filter_by == 'name' %}selected{% endif %}>Ordenar por Nome</option>
+                <option value="difficulty" {% if filter_by == 'difficulty' %}selected{% endif %}>Ordenar por Dificuldade</option>
+                <option value="status" {% if filter_by == 'status' %}selected{% endif %}>Ordenar por Status</option>
+            </select>
+        </div>
+    </div>
+    <div class="mt-2">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <a href="/view_missions" class="btn btn-secondary">Limpar</a>
+    </div>
+</form>
+
+<!-- Tabela de Missões -->
 <table class="table table-striped">
     <thead>
         <tr>

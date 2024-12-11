@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>Resultado da Batalha</h1>
-<p><strong>Vencedor:</strong> {{ winner.name }}</p>
+<p id="winner-section" style="display: none;"><strong>Vencedor:</strong> <span id="winner-name"></span></p>
 <ul id="battle-log">
     <!-- As linhas do log serão adicionadas aqui -->
 </ul>
@@ -11,13 +11,24 @@
 <script>
     const logEntries = {{ log|tojson }};
     const logContainer = document.getElementById("battle-log");
-    let delay = 500; // Delay de 500ms entre as mensagens
+    const winnerSection = document.getElementById("winner-section");
+    const winnerName = document.getElementById("winner-name");
+    const delay = 500; // Delay de 500ms entre as mensagens
 
+    // Adiciona cada entrada do log ao HTML com um delay
     logEntries.forEach((entry, index) => {
         setTimeout(() => {
             const li = document.createElement("li");
             li.textContent = entry;
             logContainer.appendChild(li);
+
+            // Exibe o vencedor ao terminar o log
+            if (index === logEntries.length - 1) {
+                setTimeout(() => {
+                    winnerName.textContent = "{{ winner.name }}";
+                    winnerSection.style.display = "block";
+                }, delay);
+            }
         }, delay * index);
     });
 </script>

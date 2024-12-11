@@ -72,7 +72,7 @@
             <td>{{ battle.hero2.name if battle.hero2 else "Desconhecido" }}</td>
             <td>{{ battle.winner.name if battle.winner else "Empate" }}</td>
             <td>
-                <!-- Formulário para excluir batalha -->
+                <!-- Botão para excluir -->
                 <form action="/delete_battle/{{ battle.id }}" method="POST" style="display: inline;">
                     <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                 </form>
@@ -87,3 +87,4 @@
 </table>
 <a href="/" class="btn btn-secondary">Voltar</a>
 {% endblock %}
+₢

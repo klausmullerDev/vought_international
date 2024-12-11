@@ -52,6 +52,48 @@
     </div>
 </div>
 
+<!-- Formulário de Busca e Filtros -->
+<form method="GET" action="{{ url_for('main.crimes') }}" class="mb-4">
+    <div class="row g-2">
+        <!-- Campo de Busca -->
+        <div class="col-md-4">
+            <input type="text" name="query" class="form-control" placeholder="Buscar por nome ou descrição" value="{{ query }}">
+        </div>
+        
+        <!-- Campo de Filtragem por Severidade -->
+        <div class="col-md-2">
+            <input type="number" name="severity_min" class="form-control" placeholder="Severidade Min" value="{{ severity_min }}" min="0" max="100">
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="severity_max" class="form-control" placeholder="Severidade Max" value="{{ severity_max }}" min="0" max="100">
+        </div>
+
+        <!-- Campo de Seleção de Herói -->
+        <div class="col-md-2">
+            <select name="hero_id" class="form-select">
+                <option value="">Todos os Heróis</option>
+                {% for hero in heroes %}
+                <option value="{{ hero.id }}" {% if hero.id == hero_id %}selected{% endif %}>{{ hero.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Botão de Ordenação -->
+        <div class="col-md-2">
+            <select name="filter_by" class="form-select">
+                <option value="name" {% if filter_by == 'name' %}selected{% endif %}>Ordenar por Nome</option>
+                <option value="date" {% if filter_by == 'date' %}selected{% endif %}>Ordenar por Data</option>
+                <option value="severity" {% if filter_by == 'severity' %}selected{% endif %}>Ordenar por Severidade</option>
+            </select>
+        </div>
+
+        <!-- Botão de Submissão -->
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </div>
+</form>
+
 <!-- Crimes table -->
 <table class="table table-striped">
     <thead>
@@ -89,7 +131,6 @@
                     <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                 </form>
             </td>
-            
         </tr>
         {% endfor %}
     </tbody>

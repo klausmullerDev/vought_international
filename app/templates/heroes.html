@@ -16,7 +16,14 @@
         {% for hero in heroes %}
         <tr>
             <td>{{ hero.name }}</td>
-            <td>{{ hero.status }}</td>
+            <td>
+                <!-- Aplicar classes Bootstrap para cores baseadas no status -->
+                <span 
+                    class="badge 
+                           {% if hero.status == 'Inactive' %}bg-success{% elif hero.status == 'Banished' %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {{ hero.status }}
+                </span>
+            </td>
             <td>{{ hero.popularity }}</td>
             <td>
                 <a href="/edit_hero/{{ hero.id }}" class="btn btn-warning btn-sm">Editar</a>
