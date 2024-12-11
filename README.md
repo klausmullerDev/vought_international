@@ -96,7 +96,7 @@ Certifique-se de ter os seguintes softwares instalados:
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/seu-usuario/vought-international.git
+   git clone https://github.com/klausmullerDev/vought-international.git
    cd vought-international
    ```
 
