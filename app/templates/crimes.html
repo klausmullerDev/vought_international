@@ -3,12 +3,12 @@
 {% block content %}
 <h1>Crimes</h1>
 
-<!-- Botão para abrir o modal de adicionar crime -->
+<!-- Button to open the modal for adding a crime -->
 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCrimeModal">
     Adicionar Crime
 </button>
 
-<!-- Modal para adicionar crime -->
+<!-- Modal for adding a crime -->
 <div class="modal fade" id="addCrimeModal" tabindex="-1" aria-labelledby="addCrimeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -52,7 +52,7 @@
     </div>
 </div>
 
-<!-- Tabela para listar crimes -->
+<!-- Crimes table -->
 <table class="table table-striped">
     <thead>
         <tr>
@@ -73,11 +73,23 @@
             <td>{{ crime.severity }}</td>
             <td>{{ crime.hero.name }}</td>
             <td>
-                <!-- Formulário para excluir crime -->
-                <form action="/delete_crime/{{ crime.id }}" method="POST" style="display: inline;">
+                <!-- Botão para Ocultar ou Desocultar -->
+                {% if not crime.hidden %}
+                <form action="{{ url_for('main.hide_crime', crime_id=crime.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-warning btn-sm">Ocultar</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('main.unhide_crime', crime_id=crime.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-success btn-sm">Desocultar</button>
+                </form>
+                {% endif %}
+            
+                <!-- Botão para Excluir -->
+                <form action="{{ url_for('main.delete_crime', crime_id=crime.id) }}" method="POST" style="display: inline;">
                     <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                 </form>
             </td>
+            
         </tr>
         {% endfor %}
     </tbody>

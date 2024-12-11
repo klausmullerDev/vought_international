@@ -142,16 +142,7 @@ def crimes():
     return render_template('crimes.html', crimes=crimes, heroes=heroes)
 
 
-@bp.route('/unhide_crime/<int:crime_id>', methods=['POST'])
-def unhide_crime(crime_id):
-    # Buscar o crime pelo ID
-    crime = Crime.query.get(crime_id)
-    if crime:
-        # Alterar o status para "não oculto"
-        crime.hidden = False
-        db.session.commit()
-        return redirect(url_for('main.view_crimes', hero_id=crime.hero_id))
-    return jsonify({"error": "Crime não encontrado"}), 404
+
 
 
 
@@ -276,22 +267,25 @@ def search_heroes():
 
 
 
-
-# Ocultar Crime
 @bp.route('/hide_crime/<int:crime_id>', methods=['POST'])
 def hide_crime(crime_id):
     crime = Crime.query.get(crime_id)
     if crime:
         crime.hidden = True
         db.session.commit()
-        return redirect(url_for('main.view_crimes', hero_id=crime.hero_id))
-    return jsonify({"error": "Crime não encontrado"}), 404
+    return redirect(url_for('main.crimes'))
 
-# Exibir Crimes Ocultos
-@bp.route('/hidden_crimes')
-def hidden_crimes():
-    crimes = Crime.query.filter_by(hidden=True).all()
-    return render_template('hidden_crimes.html', crimes=crimes)
+
+@bp.route('/unhide_crime/<int:crime_id>', methods=['POST'])
+def unhide_crime(crime_id):
+    crime = Crime.query.get(crime_id)
+    if crime:
+        crime.hidden = False
+        db.session.commit()
+    return redirect(url_for('main.crimes'))
+
+
+
 
 @bp.route('/battle_log')
 def battle_log():
